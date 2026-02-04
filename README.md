@@ -1,186 +1,98 @@
-# Podcast Dashboard
+# Podcast Dashboard - Vercel Deployment
 
-A modern web application for managing multiple podcast RSS feeds, aggregating episodes, and organizing them with custom tags.
-
-![Podcast Dashboard](https://via.placeholder.com/800x400?text=Podcast+Dashboard)
+A modern podcast RSS feed aggregator and manager built with vanilla JavaScript and deployed on Vercel serverless functions.
 
 ## Features
 
-- **Multi-RSS Feed Management**: Add, manage, and remove multiple podcast RSS feeds
-- **Episode Aggregation**: View all episodes from all feeds in one unified timeline
-- **Advanced Filtering**: Filter by podcast, search keywords, or tags
-- **Custom Tagging**: Add custom tags to episodes for better organization
-- **Responsive Design**: Beautiful, modern UI that works on desktop and mobile
-- **Real-time Updates**: Automatically fetch and parse RSS feeds
+- 📡 Add and manage multiple RSS feeds
+- 🎧 Browse episodes with search and filtering
+- 🏷️ Tag episodes for better organization
+- 📱 Responsive design with Tailwind CSS
+- ⚡ Serverless architecture optimized for Vercel
 
-## Tech Stack
+## Architecture
 
-- **Frontend**: HTML5, Tailwind CSS, Vanilla JavaScript
-- **Backend**: Node.js, Express.js
-- **Data Storage**: JSON files (no database required)
-- **RSS Parsing**: rss-parser library
+This application has been adapted for Vercel deployment with the following structure:
 
-## Quick Start
+### Frontend
+- `index.html` - Main application page
+- `app.js` - Frontend JavaScript logic
+- Hosted statically by Vercel
 
-### Prerequisites
+### Backend (Serverless Functions)
+- `api/feeds.js` - GET/POST feeds management
+- `api/episodes.js` - GET episodes with filtering
+- `api/tags.js` - GET all tags
+- `api/episodes/[episodeId]/tags.js` - PUT episode tags
+- `api/_utils/` - Shared utilities
 
-- Node.js (v14 or higher)
-- Python 3 (for serving static files)
+### Data Persistence
 
-### Installation
+⚠️ **Important**: This demo uses in-memory storage which resets on each deployment. For production, integrate with:
+- Vercel KV (Redis)
+- Supabase (PostgreSQL)  
+- PlanetScale (MySQL)
+- Any external database
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd podcast-dashboard
-   ```
+## Deployment
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   cd server && npm install
-   ```
+### 1. Install Vercel CLI
+```bash
+npm install -g vercel
+```
 
-3. **Start the application**
-   ```bash
-   # From the root directory
-   npm run dev
-   ```
+### 2. Deploy
+```bash
+# From the project root
+npm install
+vercel --prod
+```
 
-   This will start both:
-   - Backend API server on http://localhost:3001
-   - Frontend client on http://localhost:3000
+### 3. Environment Setup
+No environment variables needed for the demo version.
 
-4. **Open your browser**
-   
-   Navigate to http://localhost:3000 to access the Podcast Dashboard
+## Local Development
 
-## Usage
+```bash
+# Install dependencies
+npm install
 
-### Adding RSS Feeds
+# Start local development server
+vercel dev
+```
 
-1. Enter a podcast RSS feed URL in the "Add RSS Feed" input
-2. Click "Add Feed" to fetch and parse the podcast
-3. Episodes will automatically appear in the main feed
-
-### Managing Episodes
-
-- **Search**: Use the search bar to find episodes by title, podcast name, or description
-- **Filter by Podcast**: Select a specific podcast from the dropdown
-- **Filter by Tags**: Choose tags to show only tagged episodes
-- **Expand Description**: Click "Expand" to read full episode descriptions
-
-### Tagging System
-
-1. Click the "Tags" button on any episode card
-2. Add custom tags in the modal that opens
-3. Use tags to organize episodes by topic, priority, or status
-4. Filter episodes by tags using the tag dropdown
+Visit `http://localhost:3000` to see the application.
 
 ## API Endpoints
 
-### Feeds Management
-- `GET /api/feeds` - List all feeds
+- `GET /api/feeds` - Get all feeds
 - `POST /api/feeds` - Add new feed
-- `DELETE /api/feeds/:feedId` - Delete feed
-- `POST /api/feeds/:feedId/refresh` - Refresh feed
+- `GET /api/episodes` - Get episodes (with filtering)
+- `GET /api/tags` - Get all available tags
+- `PUT /api/episodes/[episodeId]/tags` - Update episode tags
 
-### Episodes
-- `GET /api/episodes` - Get all episodes (with optional filters)
-  - Query params: `podcastId`, `q` (search), `tag`
+## Demo RSS Feed
 
-### Tags
-- `GET /api/tags` - Get all tags
-- `PUT /api/episodes/:episodeId/tags` - Update episode tags
-
-## Data Storage
-
-The application stores data in JSON files:
-
-- `server/data/feeds.json` - RSS feed metadata and episodes
-- `server/data/tags.json` - Episode tag mappings
-
-No database setup required!
-
-## Configuration
-
-### Server Configuration
-
-The server runs on port 3001 by default. You can change this by setting the `PORT` environment variable:
-
-```bash
-PORT=8080 node server/index.js
+Try adding this RSS feed to test the application:
+```
+https://anchor.fm/s/fb856aa0/podcast/rss
 ```
 
-### CORS
+## Production Considerations
 
-The server is configured with CORS enabled for development. For production deployment, update the CORS configuration in `server/index.js`.
+1. **Replace in-memory storage** with a persistent database
+2. **Add rate limiting** for API endpoints
+3. **Implement caching** for RSS feed parsing
+4. **Add user authentication** if needed
+5. **Optimize image handling** for podcast artwork
 
-## Development
+## Technology Stack
 
-### Project Structure
-
-```
-podcast-dashboard/
-├── server/                 # Backend Express.js API
-│   ├── index.js           # Main server file
-│   ├── utils/             # Utility functions
-│   │   ├── fileUtils.js   # JSON file operations
-│   │   └── rssUtils.js    # RSS parsing utilities
-│   ├── data/              # JSON data storage
-│   └── package.json       # Server dependencies
-├── client/                 # Frontend application
-│   ├── index.html         # Main HTML file
-│   ├── app.js             # JavaScript application logic
-│   └── package.json       # Client configuration
-└── package.json           # Root project configuration
-```
-
-### Available Scripts
-
-- `npm run dev` - Start both client and server in development mode
-- `cd server && npm run dev` - Start only the server with auto-reload
-- `cd client && npm run dev` - Start only the client server
-
-## Testing
-
-The application has been tested with various RSS feeds. To test with the sample feed:
-
-1. Add this RSS feed: `https://anchor.fm/s/fb856aa0/podcast/rss`
-2. Verify episodes appear and can be filtered/tagged
-3. Test all functionality including search and tags
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature-name`
-3. Commit your changes: `git commit -am 'Add feature'`
-4. Push to the branch: `git push origin feature-name`
-5. Submit a pull request
-
-## Known Limitations
-
-- Images without proper CORS headers may not display
-- Very large RSS feeds may take time to load initially
-- HTML content in descriptions is stripped for security
-
-## Future Enhancements
-
-- [ ] Audio player integration
-- [ ] Episode bookmarking
-- [ ] Export/import feeds
-- [ ] Dark mode support
-- [ ] Push notifications for new episodes
-- [ ] Advanced search with filters
+- **Frontend**: Vanilla JavaScript, Tailwind CSS, Font Awesome
+- **Backend**: Node.js serverless functions (Vercel)
+- **RSS Parsing**: rss-parser library
+- **Deployment**: Vercel
 
 ## License
 
-MIT License - see LICENSE file for details
-
-## Support
-
-For issues and questions, please open an issue on GitHub or contact the development team.
-
----
-
-Built with ❤️ for podcast enthusiasts
+MIT License - feel free to use and modify as needed.

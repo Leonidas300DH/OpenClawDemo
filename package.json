@@ -2,12 +2,16 @@
   "name": "podcast-dashboard",
   "version": "1.0.0",
   "description": "Podcast RSS Dashboard - Aggregate and manage podcast feeds",
-  "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm run dev\"",
-    "install:all": "cd server && npm install"
+    "dev": "vercel dev",
+    "build": "echo 'Build completed'",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "rss-parser": "^3.13.0"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "vercel": "^37.0.0"
   }
 }
