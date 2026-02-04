@@ -1,27 +1,70 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Podcast Dashboard</title>
+    <title>Podcast Dashboard - Dark Mode</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        zinc: {
+                            850: '#202023',
+                            900: '#18181b',
+                            950: '#09090b',
+                        },
+                        violet: {
+                            400: '#a78bfa',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            900: '#4c1d95',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        .episode-description {
-            max-height: 100px;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
         }
-        .episode-description.expanded {
-            max-height: none;
+        ::-webkit-scrollbar-track {
+            background: #18181b; 
         }
+        ::-webkit-scrollbar-thumb {
+            background: #3f3f46; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #52525b; 
+        }
+        
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
         .loading {
             display: inline-block;
             width: 20px;
             height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
+            border: 3px solid rgba(139,92,246,.3);
             border-radius: 50%;
-            border-top-color: #fff;
+            border-top-color: #8b5cf6;
             animation: spin 1s ease-in-out infinite;
         }
         @keyframes spin {
@@ -29,127 +72,177 @@
         }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <div id="app">
-        <!-- Header -->
-        <header class="bg-white shadow-sm">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center py-6">
-                    <div>
-                        <h1 class="text-3xl font-bold text-gray-900">Podcast Dashboard</h1>
-                        <p class="text-gray-600">Manage your podcast feeds and discover episodes</p>
-                    </div>
-                    <div class="text-sm text-gray-500">
-                        <span id="totalEpisodes">0 episodes</span> | 
-                        <span id="totalFeeds">0 feeds</span>
-                    </div>
+<body class="bg-zinc-950 text-white font-sans overflow-hidden h-screen flex flex-col">
+
+    <!-- HEADER -->
+    <header class="h-16 bg-zinc-900/80 backdrop-blur-md border-b border-zinc-800 flex items-center justify-between px-4 lg:px-6 flex-shrink-0 z-20">
+        <!-- Logo -->
+        <div class="flex items-center gap-3 w-64">
+            <div class="w-8 h-8 bg-gradient-to-br from-violet-500 to-cyan-400 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-violet-500/20">
+                <i class="ph ph-waves text-xl"></i>
+            </div>
+            <span class="text-lg font-bold tracking-tight">Pod<span class="text-violet-400">Cast</span></span>
+            <div class="text-xs text-zinc-400 hidden md:block">
+                <span id="totalEpisodes">0 episodes</span> | 
+                <span id="totalFeeds">0 feeds</span>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="flex-1 max-w-xl mx-4 hidden md:block">
+            <div class="relative group">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="ph ph-magnifying-glass text-zinc-500 group-focus-within:text-violet-400 transition-colors"></i>
+                </div>
+                <input type="text" 
+                       id="searchInput"
+                       class="block w-full pl-10 pr-3 py-2 border border-zinc-700 rounded-full leading-5 bg-zinc-950/50 text-zinc-300 placeholder-zinc-500 focus:outline-none focus:bg-zinc-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 sm:text-sm transition-all" 
+                       placeholder="Search for podcasts, episodes...">
+            </div>
+        </div>
+
+        <!-- User Actions -->
+        <div class="flex items-center gap-4">
+            <div id="loadingEpisodes" class="hidden">
+                <div class="loading"></div>
+            </div>
+            <button class="text-zinc-400 hover:text-white transition-colors relative">
+                <i class="ph ph-bell text-xl"></i>
+            </button>
+            <div class="h-8 w-8 rounded-full bg-zinc-700 overflow-hidden ring-2 ring-zinc-800 cursor-pointer hover:ring-violet-500 transition-all">
+                <div class="h-full w-full bg-gradient-to-br from-violet-500 to-cyan-400 flex items-center justify-center">
+                    <i class="ph ph-user text-white text-sm"></i>
                 </div>
             </div>
-        </header>
+        </div>
+    </header>
 
-        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <!-- Feed Manager -->
-            <div class="bg-white rounded-lg shadow mb-6 p-6">
-                <h2 class="text-xl font-semibold mb-4">Add RSS Feed</h2>
-                <div class="flex gap-4">
-                    <input 
-                        type="url" 
-                        id="feedUrl" 
-                        placeholder="Enter RSS feed URL..." 
-                        class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                    <button 
-                        id="addFeedBtn" 
-                        class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
-                    >
-                        <i class="fas fa-plus"></i>
-                        Add Feed
-                    </button>
-                </div>
-                <div id="feedError" class="hidden mt-2 text-red-600"></div>
-                <div id="feedSuccess" class="hidden mt-2 text-green-600"></div>
+    <div class="flex flex-1 overflow-hidden">
+        
+        <!-- SIDEBAR -->
+        <aside class="w-64 bg-zinc-900 border-r border-zinc-800 hidden lg:flex flex-col flex-shrink-0">
+            <div class="p-4 space-y-6 overflow-y-auto">
                 
-                <!-- Feeds List -->
-                <div id="feedsList" class="mt-6"></div>
-            </div>
+                <!-- Add Feed Section -->
+                <div class="space-y-3">
+                    <p class="px-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Add Feed</p>
+                    <div class="space-y-2">
+                        <input 
+                            type="url" 
+                            id="feedUrl" 
+                            placeholder="Enter RSS feed URL..." 
+                            class="w-full px-3 py-2 text-sm border border-zinc-700 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 bg-zinc-950/50 text-zinc-300 placeholder-zinc-500"
+                        >
+                        <button 
+                            id="addFeedBtn" 
+                            class="w-full px-3 py-2 bg-violet-600 text-white text-sm rounded-lg hover:bg-violet-700 flex items-center justify-center gap-2 transition-colors"
+                        >
+                            <i class="ph ph-plus"></i>
+                            Add Feed
+                        </button>
+                        <div id="feedError" class="hidden text-xs text-red-400"></div>
+                        <div id="feedSuccess" class="hidden text-xs text-green-400"></div>
+                    </div>
+                </div>
 
-            <!-- Filters -->
-            <div class="bg-white rounded-lg shadow mb-6 p-6">
-                <h2 class="text-xl font-semibold mb-4">Filters</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Podcast</label>
-                        <select id="podcastFilter" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                <!-- Main Nav -->
+                <div class="space-y-1">
+                    <p class="px-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Menu</p>
+                    <a href="#" class="group flex items-center px-3 py-2 text-sm font-medium bg-violet-500/10 text-violet-400 rounded-md border border-violet-500/10">
+                        <i class="ph ph-squares-four text-lg mr-3"></i>
+                        Dashboard
+                    </a>
+                </div>
+
+                <!-- Filters -->
+                <div class="space-y-3">
+                    <p class="px-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Filters</p>
+                    <div class="space-y-2">
+                        <select id="podcastFilter" class="w-full px-3 py-2 text-sm border border-zinc-700 rounded-lg bg-zinc-950/50 text-zinc-300">
                             <option value="">All Podcasts</option>
                         </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
-                        <input 
-                            type="text" 
-                            id="searchInput" 
-                            placeholder="Search episodes..." 
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                        >
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Tag</label>
-                        <select id="tagFilter" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <select id="tagFilter" class="w-full px-3 py-2 text-sm border border-zinc-700 rounded-lg bg-zinc-950/50 text-zinc-300">
                             <option value="">All Tags</option>
                         </select>
+                        <button 
+                            id="clearFiltersBtn" 
+                            class="w-full px-3 py-2 text-sm text-zinc-400 hover:text-white transition-colors"
+                        >
+                            Clear Filters
+                        </button>
                     </div>
                 </div>
-                <div class="mt-4 flex justify-between items-center">
-                    <button 
-                        id="clearFiltersBtn" 
-                        class="px-4 py-2 text-gray-600 hover:text-gray-800"
-                    >
-                        Clear Filters
+
+                <!-- Feeds List -->
+                <div class="space-y-2">
+                    <p class="px-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Your Feeds</p>
+                    <div id="feedsList" class="space-y-2 max-h-48 overflow-y-auto scrollbar-hide">
+                        <!-- Feeds will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 overflow-y-auto bg-zinc-950 p-4 lg:p-8 relative scrollbar-hide">
+            
+            <!-- Header -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div>
+                    <h1 class="text-2xl font-bold text-white mb-1">New Episodes</h1>
+                    <p class="text-zinc-400 text-sm">Fresh content from your subscriptions</p>
+                    <span id="filteredCount" class="text-xs text-zinc-500 mt-1 block"></span>
+                </div>
+                
+                <!-- Filter Chips -->
+                <div class="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
+                    <button id="filterAll" class="px-4 py-1.5 rounded-full text-sm font-medium bg-white text-zinc-950 shadow-md hover:bg-zinc-200 transition-colors whitespace-nowrap">
+                        All
                     </button>
-                    <span id="filteredCount" class="text-sm text-gray-500"></span>
+                    <button id="filterUnplayed" class="px-4 py-1.5 rounded-full text-sm font-medium border border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white bg-transparent transition-all whitespace-nowrap">
+                        Unplayed
+                    </button>
                 </div>
             </div>
 
-            <!-- Episodes Grid -->
-            <div class="bg-white rounded-lg shadow p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-semibold">Episodes</h2>
-                    <div id="loadingEpisodes" class="hidden">
-                        <div class="loading"></div>
-                    </div>
-                </div>
-                <div id="episodesList" class="space-y-4">
-                    <!-- Episodes will be loaded here -->
-                </div>
-                <div id="noEpisodes" class="hidden text-center py-12 text-gray-500">
-                    <i class="fas fa-podcast text-4xl mb-4"></i>
-                    <p class="text-lg">No episodes found</p>
-                    <p>Add an RSS feed to get started!</p>
-                </div>
+            <!-- EPISODE GRID -->
+            <div id="episodesList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+                <!-- Episodes will be loaded here -->
             </div>
+            
+            <!-- No Episodes Message -->
+            <div id="noEpisodes" class="hidden text-center py-12 text-gray-500">
+                <i class="ph ph-podcast text-6xl mb-4 text-zinc-600"></i>
+                <p class="text-lg text-zinc-400">No episodes found</p>
+                <p class="text-zinc-500">Add an RSS feed to get started!</p>
+            </div>
+            
+            <!-- Bottom Spacer -->
+            <div class="h-20"></div>
+
         </main>
+    </div>
 
-        <!-- Tag Editor Modal -->
-        <div id="tagModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-                <h3 class="text-lg font-semibold mb-4">Edit Tags</h3>
-                <div id="tagEditor">
-                    <input 
-                        type="text" 
-                        id="tagInput" 
-                        placeholder="Add a tag..." 
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4"
-                    >
-                    <div id="currentTags" class="mb-4"></div>
-                </div>
-                <div class="flex justify-end gap-3">
-                    <button id="cancelTagsBtn" class="px-4 py-2 text-gray-600 hover:text-gray-800">
-                        Cancel
-                    </button>
-                    <button id="saveTagsBtn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                        Save
-                    </button>
-                </div>
+    <!-- Tag Editor Modal -->
+    <div id="tagModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-zinc-900 border border-zinc-700 rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 class="text-lg font-semibold mb-4 text-white">Edit Tags</h3>
+            <div id="tagEditor">
+                <input 
+                    type="text" 
+                    id="tagInput" 
+                    placeholder="Add a tag..." 
+                    class="w-full px-4 py-2 border border-zinc-700 rounded-lg mb-4 bg-zinc-950/50 text-zinc-300 placeholder-zinc-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                >
+                <div id="currentTags" class="mb-4"></div>
+            </div>
+            <div class="flex justify-end gap-3">
+                <button id="cancelTagsBtn" class="px-4 py-2 text-zinc-400 hover:text-white transition-colors">
+                    Cancel
+                </button>
+                <button id="saveTagsBtn" class="px-4 py-2 bg-violet-600 text-white rounded hover:bg-violet-700 transition-colors">
+                    Save
+                </button>
             </div>
         </div>
     </div>
