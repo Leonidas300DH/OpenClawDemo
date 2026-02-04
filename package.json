@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Podcast RSS Dashboard - Aggregate and manage podcast feeds",
   "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "dev": "vercel dev",
     "build": "echo 'Build completed'",

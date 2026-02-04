@@ -1,36 +1,18 @@
 // Stateless data store for Vercel deployment
 // For production, this should be replaced with a proper database (Vercel KV, Supabase, etc.)
 
-// Initial demo data
+import { parseRssFeed } from './rssUtils.js';
+
+// Default RSS feed to auto-fetch
+const DEFAULT_RSS_URL = 'https://anchor.fm/s/fb856aa0/podcast/rss';
+
+// Initial empty data - will be auto-populated
 let feedsData = {
-  feeds: [
-    {
-      id: "feed_c8ae1b3a87f62e602e20366c06366574",
-      url: "https://anchor.fm/s/fb856aa0/podcast/rss",
-      title: "AI Odyssey",
-      description: "AI Odyssey is your journey through the vast and evolving world of artificial intelligence.",
-      image: null,
-      lastFetchedAt: "2026-02-04T00:00:30.183Z",
-      episodes: [
-        {
-          episodeId: "999ecd09-dab3-4c97-9fd6-57ef2611883a",
-          guid: "999ecd09-dab3-4c97-9fd6-57ef2611883a",
-          title: "🎧 OpenClaw: The Lobster That Wants to Run Your Life",
-          pubDate: "Sat, 31 Jan 2026 23:50:39 GMT",
-          description: "<p>Remember when Siri was supposed to change everything? This might actually be it.</p>",
-          duration: "799",
-          image: null,
-          audioUrl: "https://anchor.fm/s/fb856aa0/podcast/play/114840872/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2026-0-31%2F57f9f9ba-8f11-dcec-5448-26075f1b6017.m4a"
-        }
-      ]
-    }
-  ]
+  feeds: []
 };
 
 let tagsData = {
-  tagsByEpisodeId: {
-    "999ecd09-dab3-4c97-9fd6-57ef2611883a": ["AI", "OpenClaw", "Assistant"]
-  }
+  tagsByEpisodeId: {}
 };
 
 /**
@@ -38,6 +20,18 @@ let tagsData = {
  * @returns {Promise<object>}
  */
 export async function getFeeds() {
+  // Auto-fetch default RSS feed if no feeds exist
+  if (feedsData.feeds.length === 0) {
+    try {
+      console.log('🔄 No feeds found, auto-fetching default RSS feed...');
+      const defaultFeed = await parseRssFeed(DEFAULT_RSS_URL);
+      feedsData.feeds.push(defaultFeed);
+      console.log(`✅ Auto-fetched "${defaultFeed.title}" with ${defaultFeed.episodes.length} episodes`);
+    } catch (error) {
+      console.error('❌ Failed to auto-fetch default RSS feed:', error.message);
+    }
+  }
+  
   return JSON.parse(JSON.stringify(feedsData)); // Deep clone to avoid mutations
 }
 
@@ -79,5 +73,17 @@ export async function initializeData() {
   }
   if (!tagsData.tagsByEpisodeId) {
     tagsData = { tagsByEpisodeId: {} };
+  }
+  
+  // Auto-fetch default RSS feed on initialization if needed
+  if (feedsData.feeds.length === 0) {
+    try {
+      console.log('🚀 Initializing with default RSS feed...');
+      const defaultFeed = await parseRssFeed(DEFAULT_RSS_URL);
+      feedsData.feeds.push(defaultFeed);
+      console.log(`✅ Initialized with "${defaultFeed.title}" - ${defaultFeed.episodes.length} episodes`);
+    } catch (error) {
+      console.error('❌ Failed to initialize with default RSS feed:', error.message);
+    }
   }
 }

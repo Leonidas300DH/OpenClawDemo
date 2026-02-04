@@ -35,14 +35,20 @@ export function generateFeedId(url) {
  * @returns {string|null}
  */
 export function extractArtwork(item) {
-  // Try itunes:image first
-  if (item['itunes:image'] && item['itunes:image'].href) {
-    return item['itunes:image'].href;
-  }
-  
-  // Try itunes:image as direct URL (some feeds)
-  if (typeof item['itunes:image'] === 'string') {
-    return item['itunes:image'];
+  // Try itunes:image first - check for $ structure (xml2js format)
+  if (item['itunes:image']) {
+    // Handle xml2js format: { '$': { href: 'url' } }
+    if (item['itunes:image']['$'] && item['itunes:image']['$'].href) {
+      return item['itunes:image']['$'].href;
+    }
+    // Handle direct href property
+    if (item['itunes:image'].href) {
+      return item['itunes:image'].href;
+    }
+    // Handle direct URL string
+    if (typeof item['itunes:image'] === 'string') {
+      return item['itunes:image'];
+    }
   }
   
   // Try standard image
