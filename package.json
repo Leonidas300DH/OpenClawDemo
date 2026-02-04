@@ -1,0 +1,13 @@
+{
+  "name": "podcast-dashboard",
+  "version": "1.0.0",
+  "description": "Podcast RSS Dashboard - Aggregate and manage podcast feeds",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm run dev\"",
+    "install:all": "cd server && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
